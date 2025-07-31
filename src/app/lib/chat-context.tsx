@@ -143,7 +143,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        accumulatedContent += chunk;
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('0:')) {
+            // Extract content from the data stream format
+            const content = line.substring(2).replace(/^"(.*)"$/, '$1');
+            if (content && content !== ' ') {
+              accumulatedContent += content;
+            }
+          } else if (line.startsWith('d:')) {
+            // This is the end marker, we can ignore it
+            continue;
+          }
+        }
+        
         dispatch({ type: "UPDATE_LAST_MESSAGE", payload: accumulatedContent });
       }
     } catch (error) {
